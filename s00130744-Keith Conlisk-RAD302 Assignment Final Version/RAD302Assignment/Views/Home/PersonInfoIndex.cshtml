@@ -1,0 +1,109 @@
+﻿
+<div class="jumbotron">
+
+    <input type="button" class="btn btn-primary" value="Get Characters" onclick="getCharacters();" />
+
+    <div class="row">
+        <div class="col-md-4">
+            <h2>PersonInfos</h2>
+            <select id="lstCharacters" size="5" onchange="PersonInfoelected()" style="width:100%"></select>
+        </div>
+        <div class="col-md-4">
+            <h2>Thumbnail</h2>
+            <img id="imgThumnail" width="500" height="500"/>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Available PersonInfos</h2>
+            <ul id="lstPersonInfos"/>
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+            var privateKey = "f0faa157ce7cc5a8163ecc29be3010c7274170f1";
+            var publicKey = "a75b4bb82f93db233d5a8f625debb964";
+            var uri = "http://gateway.en.wikipedia.org/v1/public/";
+
+            function createHash(timestamp) {
+                return $.md5(timestamp + privateKey + publicKey);
+            }
+
+            //Only used to get the characters that are in the starter Database
+            function getWikiAPIGender() {
+
+                var timestamp = Date.now();
+                var hash = createHash(timestamp);
+                var suffix = 'genders'
+                var offset = 0;
+
+                var completeURL = uri + suffix + '?limit=100&offset='+offset+'&ts=' + timestamp + '&apikey=' + publicKey + '&hash=' + hash;
+
+                $.ajax(
+                    {
+                        type: 'GET',
+                        dataType: 'json',
+                        url: test,
+                        processData: true,
+                        success: function (data, status) {
+                            $.each(data.data.results, function (key, item) {
+                                $('<li>', { text: item.id }).appendTo('#lstIDs');
+                                $('<li>', { text: item.name }).appendTo('#lstGenders');
+                            })
+                        },
+                        error: function (jqXHR, errorThrown) { alert(jqXHR.status) },
+                    })
+            }
+
+            var myUri = "http://localhost:51547//api/BasicCharacters";
+
+            function getPersonInfo() {
+                $.ajax(
+                    {
+                        type: 'GET',
+                        dataType: 'json',
+                        url: myUri,
+                        processData: true,
+                        success: function (data, status) {
+                            $.each(data, function (key, item) {
+                                $('<option>', { text: item.Name, id: item.ID }).appendTo('#lstGenders');
+                            })
+                        },
+                        error: function (jqXHR, errorThrown) { alert(jqXHR.status) },
+                    })
+            }
+
+            function PersonInfoSelected() {
+
+                $('#lstComics').empty();
+
+                var timestamp = Date.now();
+                var hash = createHash(timestamp);
+                var characterID = $('#lstGenders option:selected').attr('id');
+                var suffix = 'Genders/' + characterID;
+                var completeURL = uri + suffix + '?&ts=' + timestamp + '&apikey=' + publicKey + '&hash=' + hash;
+
+                $.ajax(
+                    {
+                        type: 'GET',
+                        dataType: 'json',
+                        url: completeURL,
+                        processData: true,
+                        success: function (data, status) {
+                            var imageSource = data.data.results[0].thumbnail.path +'.'+ data.data.results[0].thumbnail.extension;
+                            $("#imgThumnail").attr("src", imageSource);
+
+                            $.each(data.data.results[0].comics.items, function (key, item) {
+                                $('<li>', { text: item.name }).appendTo('#lstPersonInfos');
+                            });
+
+                        },
+                        error: function (jqXHR, errorThrown) { alert(jqXHR.status) },
+                    })
+            }
+
+</script>
